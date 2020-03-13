@@ -10,6 +10,7 @@ https://research.ncl.ac.uk/game/
 #include "../../Plugins/OpenGLRendering/OGLShader.h"
 #include "../../Common/Assets.h"
 #include <iostream>
+#include <vector>
 
 using namespace NCL;
 using namespace Rendering;
@@ -34,6 +35,17 @@ OGLComputeShader::OGLComputeShader(const std::string& s)	{
 	std::cout << "Loading compute shader " << s << std::endl;
 	if (programValid != GL_TRUE) {
 		std::cout << "Compute shader has failed!" << std::endl;
+
+		GLint maxLength = 0;
+		glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &maxLength);
+
+		// The maxLength includes the NULL character
+		std::vector<GLchar> infoLog(maxLength);
+		glGetProgramInfoLog(programID, maxLength, &maxLength, &infoLog[0]);
+
+		for (auto x : infoLog)
+			std::cout << x;
+
 		threadsInGroup[0] = 0;
 		threadsInGroup[1] = 0;
 		threadsInGroup[2] = 0;

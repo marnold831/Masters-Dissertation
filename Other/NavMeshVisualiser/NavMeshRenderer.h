@@ -3,6 +3,8 @@
 #include "../../Plugins/OpenGLRendering/OGLShader.h"
 #include "../../Plugins/OpenGLRendering/OGLTexture.h"
 #include "../../Plugins/OpenGLRendering/OGLMesh.h"
+#include "../../Plugins/OpenGLRendering/OGLComputeShader.h"
+#include "HeightMap.h"
 
 
 namespace NCL {
@@ -16,9 +18,16 @@ namespace NCL {
 		void Update(float dt) override;
 	protected:
 		void RenderFrame()	override;
-		//TODO Implement the heigtmap class
-		//HeightMap* heightmap;
-		Camera*		camera;
+		void GenerateComputeBuffer();
+
+		OGLMesh* navMesh;
+		OGLShader* navShader;
+		OGLComputeShader* computeshader;
+		Camera* camera;
+		HeightMap* heightmap;
+		Particles* particles;
+
+		GLuint computeBuffer;
 	};
 }
 

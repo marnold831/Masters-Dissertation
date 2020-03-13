@@ -10,6 +10,7 @@ int main() {
 	}
 
 	NavMeshRenderer* renderer = new NavMeshRenderer();
+	w->LockMouseToWindow(true);
 
 	while (w->UpdateWindow() && !Window::GetKeyboard()->KeyDown(KeyboardKeys::ESCAPE)) {
 		float time = w->GetTimer()->GetTimeDeltaSeconds();

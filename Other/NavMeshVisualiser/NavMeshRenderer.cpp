@@ -10,60 +10,22 @@
 using namespace NCL;
 
 NavMeshRenderer::NavMeshRenderer() : OGLRenderer(*Window::GetWindow())	{
-	navMesh = new OGLMesh();
+	
+	heightmap = new HeightMap(Assets::MESHDIR + "terrain.raw");
+	heightmap->SetTexture(OGLTexture::RGBATextureFromFilename(Assets::TEXTUREDIR + "Barren Reds.jpg"));
 
-	std::ifstream mapFile(Assets::DATADIR + "test.navmesh");
+	computeshader = new OGLComputeShader("ComputeShader.glsl");
+	GenerateComputeBuffer();
 
-	int vCount = 0;
-	int iCount = 0;
-
-	mapFile >> vCount;
-	mapFile >> iCount;
-
-	vector<Vector3>			meshVerts;
-	vector<unsigned int>	meshIndices;
-
-	for (int i = 0; i < vCount; ++i) {
-		Vector3 temp;
-		mapFile >> temp.x;
-		mapFile >> temp.y;
-		mapFile >> temp.z;
-		meshVerts.emplace_back(temp);
-	}
-
-	for (int i = 0; i < iCount; ++i) {
-		unsigned int temp = -1;
-		mapFile >> temp;
-		meshIndices.emplace_back(temp);
-	}
-
-	struct TriNeighbours {
-		int indices[3];
-	};
-
-	int numTris = iCount / 3;	//the indices describe n / 3 triangles
-	vector< TriNeighbours> allNeighbours;
-	//Each of these triangles will be sharing edges with some other triangles
-	//so it has a maximum of 3 'neighbours', desribed by an index into n / 3 tris
-	//if its a -1, then the edge is along the edge of the map...
-	for (int i = 0; i < numTris; ++i) {
-		TriNeighbours neighbours;
-		mapFile >> neighbours.indices[0];
-		mapFile >> neighbours.indices[1];
-		mapFile >> neighbours.indices[2];
-		allNeighbours.emplace_back(neighbours);
-	}
-
-	navMesh->SetVertexPositions(meshVerts);
-	navMesh->SetVertexIndices(meshIndices);
-
-	navMesh->UploadToGPU();
-
-	navShader = new OGLShader("GameTechVert.glsl", "GameTechFrag.glsl");
+	navShader = new OGLShader("BasicVert.glsl", "BasicFrag.glsl");
 	camera = new Camera();
 
+	heightmap->UploadToGPU();
+
 	camera->SetNearPlane(1.0f);
-	camera->SetFarPlane(1000.0f);
+	camera->SetFarPlane(5000.0f);
+	camera->SetPitch(-30.0f);
+	camera->SetPosition(Vector3(0, 500, 0));
 }
 
 NavMeshRenderer::~NavMeshRenderer() {
@@ -77,24 +39,42 @@ void NavMeshRenderer::Update(float dt) {
 }
 
 void NavMeshRenderer::RenderFrame() {
+
+	computeshader->Bind();
+	glUniform4fv(glGetUniformLocation(computeshader->GetProgramID(), "positions"), (float*)& positions);
+	glUniform1f(glGetUniformLocation(computeshader->GetProgramID(), "number"), 1.0f);
+	computeshader->Execute(1);
+
 	BindShader(navShader);
+	BindTextureToShader(heightmap->GetTexture(), "mainTex", 0);
 	float screenAspect = (float)currentWidth / (float)currentHeight;
 
 	Matrix4 viewMatrix = camera->BuildViewMatrix();
 	Matrix4 projMatrix = camera->BuildProjectionMatrix(screenAspect);
 	Matrix4 modelMat = Matrix4();
+	Matrix4 texture = Matrix4();
 
 	int projLocation	= glGetUniformLocation(navShader->GetProgramID(), "projMatrix");
 	int viewLocation	= glGetUniformLocation(navShader->GetProgramID(), "viewMatrix");
 	int modelLocation	= glGetUniformLocation(navShader->GetProgramID(), "modelMatrix");
-	int hasTexLocation	= glGetUniformLocation(navShader->GetProgramID(), "hasTexture");
+	int textureMatrix = glGetUniformLocation(navShader->GetProgramID(), "textureMatrix");
+	//int hasTexLocation	= glGetUniformLocation(navShader->GetProgramID(), "hasTexture");
 
 	glUniformMatrix4fv(modelLocation, 1, false, (float*)&modelMat);
 	glUniformMatrix4fv(viewLocation, 1, false, (float*)&viewMatrix);
 	glUniformMatrix4fv(projLocation, 1, false, (float*)&projMatrix);
+	glUniformMatrix4fv(textureMatrix, 1, false, (float*)&texture);
 
-	glUniform1i(hasTexLocation, 0);
+	//glUniform1i(hasTexLocation, 0);
 
-	BindMesh(navMesh);
+	BindMesh(heightmap);
 	DrawBoundMesh();
+}
+
+void NCL::NavMeshRenderer::GenerateComputeBuffer() {
+	glGenBuffers(1, &computeBuffer);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, computeBuffer);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, 1 * sizeof(float), NULL, GL_STATIC_DRAW);
+
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, computeBuffer);
 }
