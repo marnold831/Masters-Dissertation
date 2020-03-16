@@ -4,7 +4,9 @@
 #include "../../Plugins/OpenGLRendering/OGLTexture.h"
 #include "../../Plugins/OpenGLRendering/OGLMesh.h"
 #include "../../Plugins/OpenGLRendering/OGLComputeShader.h"
+
 #include "HeightMap.h"
+#include "Particles.h"
 
 
 namespace NCL {
@@ -19,7 +21,10 @@ namespace NCL {
 	protected:
 		void RenderFrame()	override;
 		void GenerateComputeBuffer();
+		void SwapComputeBuffers();
 
+		GLuint defaultVAO;
+		
 		OGLMesh* navMesh;
 		OGLShader* navShader;
 		OGLComputeShader* computeshader;
@@ -27,7 +32,13 @@ namespace NCL {
 		HeightMap* heightmap;
 		Particles* particles;
 
-		GLuint computeBuffer;
+		TextureBase* doge;
+
+		GLuint computeBufferA;
+		GLuint computeBufferB;
+
+		int count;
+		bool bufferBind;
 	};
 }
 

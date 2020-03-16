@@ -8,6 +8,7 @@ https://research.ncl.ac.uk/game/
 */
 #pragma once
 #include "../../Common/MeshGeometry.h"
+
 #include "glad\glad.h"
 
 #include <string>
@@ -36,6 +37,9 @@ namespace NCL {
 
 			void RecalculateNormals();
 
+		/*	void SetTexture(TextureBase* _texture) { texture = _texture; }
+			TextureBase* GetTexture()const { return texture; }*/
+
 			void UploadToGPU() override;
 
 		protected:
@@ -44,9 +48,13 @@ namespace NCL {
 
 			void BindVertexAttribute(int attribSlot, int bufferID, int bindingID, int elementCount, int elementSize, int elementOffset);
 
+			
+
 			//void BufferData();
 
 			int		subCount;
+
+			/*TextureBase* texture;*/
 
 			GLuint vao;
 			GLuint oglType;

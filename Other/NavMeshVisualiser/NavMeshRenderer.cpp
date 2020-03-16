@@ -9,15 +9,15 @@
 #include <iostream>
 using namespace NCL;
 
-NavMeshRenderer::NavMeshRenderer() : OGLRenderer(*Window::GetWindow())	{
+NavMeshRenderer::NavMeshRenderer() : OGLRenderer(*Window::GetWindow()), count(0), bufferBind(false)	{
 	
 	heightmap = new HeightMap(Assets::MESHDIR + "terrain.raw");
 	heightmap->SetTexture(OGLTexture::RGBATextureFromFilename(Assets::TEXTUREDIR + "Barren Reds.jpg"));
-
-	computeshader = new OGLComputeShader("ComputeShader.glsl");
+	particles = new Particles(100);
+	computeshader = new OGLComputeShader("SpawnComputeShader.glsl");
 	GenerateComputeBuffer();
 
-	navShader = new OGLShader("BasicVert.glsl", "BasicFrag.glsl");
+	navShader = new OGLShader("BasicVert.glsl", "BasicFrag.glsl", "RenderGeom.glsl");
 	camera = new Camera();
 
 	heightmap->UploadToGPU();
@@ -26,6 +26,20 @@ NavMeshRenderer::NavMeshRenderer() : OGLRenderer(*Window::GetWindow())	{
 	camera->SetFarPlane(5000.0f);
 	camera->SetPitch(-30.0f);
 	camera->SetPosition(Vector3(0, 500, 0));
+
+	navMesh = new OGLMesh();
+	//navMesh->SetTexture(OGLTexture::RGBATextureFromFilename(Assets::TEXTUREDIR + "doge.png"));
+	vector<Vector3> verts;
+	verts.resize(100);
+	navMesh->SetVertexPositions(verts);
+	
+	doge = OGLTexture::RGBATextureFromFilename(Assets::TEXTUREDIR + "doge.png");
+
+	glGenVertexArrays(1, &defaultVAO);
+	glBindVertexArray(defaultVAO);
+	
+
+	
 }
 
 NavMeshRenderer::~NavMeshRenderer() {
@@ -41,12 +55,31 @@ void NavMeshRenderer::Update(float dt) {
 void NavMeshRenderer::RenderFrame() {
 
 	computeshader->Bind();
-	glUniform4fv(glGetUniformLocation(computeshader->GetProgramID(), "positions"), (float*)& positions);
-	glUniform1f(glGetUniformLocation(computeshader->GetProgramID(), "number"), 1.0f);
-	computeshader->Execute(1);
+	
+	//glUniform1f(glGetUniformLocation(computeshader->GetProgramID(), "number"), 1.0f);
+	computeshader->Execute(100);
+	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
+	/*glBindBuffer(GL_SHADER_STORAGE_BUFFER, computeBuffer);
+	Vector4* ptr;
+	ptr = (Vector4*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, 100 * sizeof(Vector4), GL_MAP_READ_BIT);
+	vector<Vector4> temp;
+	for (int i = 0; i < 100; ++i) {
+		temp.push_back(ptr[i]);
+		std::cout << "position " << i << ": " << ptr[i] << std::endl;
+	}
+	particles->SetPositions(temp);
+	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);*/
+	if (bufferBind) {
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, computeBufferA);
+	}
+	else {
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, computeBufferB);
+	}
 	BindShader(navShader);
-	BindTextureToShader(heightmap->GetTexture(), "mainTex", 0);
+	glBindVertexArray(defaultVAO);
+	
+	BindTextureToShader(doge, "mainTex", 0);
 	float screenAspect = (float)currentWidth / (float)currentHeight;
 
 	Matrix4 viewMatrix = camera->BuildViewMatrix();
@@ -67,14 +100,38 @@ void NavMeshRenderer::RenderFrame() {
 
 	//glUniform1i(hasTexLocation, 0);
 
-	BindMesh(heightmap);
-	DrawBoundMesh();
+	//BindMesh(navMesh);
+	glDrawArrays(GL_POINTS, 0, 100);
+	//DrawBoundMesh();
+
+	SwapComputeBuffers();
 }
 
 void NCL::NavMeshRenderer::GenerateComputeBuffer() {
-	glGenBuffers(1, &computeBuffer);
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, computeBuffer);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, 1 * sizeof(float), NULL, GL_STATIC_DRAW);
+	glGenBuffers(1, &computeBufferA);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, computeBufferA);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, 100 * sizeof(Vector4), (float*)particles->GetPositions().data(), GL_DYNAMIC_DRAW);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, computeBufferA);
 
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, computeBuffer);
+	glGenBuffers(1, &computeBufferB);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, computeBufferB);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, 100 * sizeof(Vector4), (float*)particles->GetPositions().data(), GL_DYNAMIC_DRAW);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, computeBufferB);
+
+
+
+}
+
+void NCL::NavMeshRenderer::SwapComputeBuffers() {
+	if (count % 2 == 0) {
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, computeBufferB);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, computeBufferA);
+		bufferBind = true;
+	}
+	else {
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, computeBufferB);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, computeBufferA);
+		bufferBind = false;
+	}
+	count++;
 }

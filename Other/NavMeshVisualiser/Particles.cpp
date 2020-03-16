@@ -1,9 +1,20 @@
 #include "Particles.h"
 
-Particles::Particles(NCL::Maths::Vector4 positions, NCL::Maths::Vector4 velocities) : positions(positions), velocities(velocities)
+Particles::Particles(int numParticles) : numParticles(numParticles)
 {
+	positions.resize(numParticles);
+
+	for (int i = 0; i < numParticles; ++i) {
+		positions[i] = Vector4();
+	}
+
+	velocities.resize(numParticles);
+	for (int i = 0; i < numParticles; ++i) {
+		velocities[i] = Vector4();
+	}
 }
 
 Particles::~Particles()
 {
+
 }
