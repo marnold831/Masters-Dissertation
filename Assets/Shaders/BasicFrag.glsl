@@ -4,7 +4,7 @@ uniform sampler2D 	mainTex;
 
 in Vertex
 {
-	vec3 position;
+	vec4 position;
 	vec4 color;
 	vec2 texCoord;
 } IN;

@@ -29,9 +29,9 @@ void main() {
 	float sinPhi = sin(phi);
 	float cosPhi = cos(phi);
 
-	float x = r * sinPhi * cosTheta * 10;
-	float y = r * sinPhi * sinTheta * 10;
-	float z = r * cosPhi * 10;
+	float x = r * sinPhi * cosTheta * 30;
+	float y = r * sinPhi * sinTheta * 30;
+	float z = r * cosPhi * 30;
 
 	Positions[gid] = vec4(x, y, z, 1.0);
 }

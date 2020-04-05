@@ -8,6 +8,8 @@
 #include "HeightMap.h"
 #include "Particles.h"
 
+#define NUMBER_PARTICLES 100
+
 
 namespace NCL {
 	class Camera;
@@ -22,20 +24,30 @@ namespace NCL {
 		void RenderFrame()	override;
 		void GenerateComputeBuffer();
 		void SwapComputeBuffers();
+		void RunGenerateShader();
+		void SaveParticlesGenerated();
+		void MoveParticles();
 
 		GLuint defaultVAO;
+		GLuint vao;
+
+		GLuint vertexBuffer;
+		GLuint computeBufferA;
+		GLuint computeBufferB;
 		
 		OGLMesh* navMesh;
+
 		OGLShader* navShader;
-		OGLComputeShader* computeshader;
+		OGLComputeShader* generateShader;
+		OGLComputeShader* updateShader;
+
 		Camera* camera;
 		HeightMap* heightmap;
 		Particles* particles;
 
 		TextureBase* doge;
 
-		GLuint computeBufferA;
-		GLuint computeBufferB;
+		
 
 		int count;
 		bool bufferBind;
