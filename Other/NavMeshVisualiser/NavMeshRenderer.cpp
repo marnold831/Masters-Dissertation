@@ -66,8 +66,8 @@ void NavMeshRenderer::RenderFrame() {
 	}*/
 	BindShader(navShader);
 	MoveParticles();
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, NUMBER_PARTICLES * sizeof(Vector4), (float*)particles->GetPositions().data());
+	/*glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, NUMBER_PARTICLES * sizeof(Vector4), (float*)particles->GetPositions().data());*/
 	
 	BindTextureToShader(doge, "mainTex", 0);
 	float screenAspect = (float)currentWidth / (float)currentHeight;
@@ -140,15 +140,12 @@ void NCL::NavMeshRenderer::SaveParticlesGenerated() {
 	particles->SetPositions(temp);
 	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-
-	glGenBuffers(1, &vertexBuffer);
+	/*glGenBuffers(1, &vertexBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, NUMBER_PARTICLES * sizeof(Vector4), (float*)particles->GetPositions().data(), GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(3);
-	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 0, 0);*/
 
 }
 
@@ -165,4 +162,10 @@ void NCL::NavMeshRenderer::MoveParticles() {
 		newPositions.push_back(Vector4(position.x, position.y, position.z, 1));
 	}
 	particles->SetPositions(newPositions);
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, computeBufferA);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, NUMBER_PARTICLES * sizeof(Vector4), (float*)particles->GetPositions().data(), GL_DYNAMIC_DRAW);
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, computeBufferB);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, NUMBER_PARTICLES * sizeof(Vector4), (float*)particles->GetPositions().data(), GL_DYNAMIC_DRAW);
 }

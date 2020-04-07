@@ -29,7 +29,6 @@ namespace NCL {
 		void MoveParticles();
 
 		GLuint defaultVAO;
-		GLuint vao;
 
 		GLuint vertexBuffer;
 		GLuint computeBufferA;
