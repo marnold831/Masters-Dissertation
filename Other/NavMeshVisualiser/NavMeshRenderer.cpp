@@ -22,7 +22,6 @@ NavMeshRenderer::NavMeshRenderer() : OGLRenderer(*Window::GetWindow()), count(0)
 	GenerateComputeBuffer();
 	RunGenerateShader();
 	SaveParticlesGenerated();
-	MoveParticles();
 
 	navShader = new OGLShader("BasicVert.glsl", "BasicFrag.glsl", "RenderGeom.glsl");
 	camera = new Camera();
@@ -31,8 +30,8 @@ NavMeshRenderer::NavMeshRenderer() : OGLRenderer(*Window::GetWindow()), count(0)
 
 	camera->SetNearPlane(1.0f);
 	camera->SetFarPlane(5000.0f);
-	camera->SetPitch(-30.0f);
-	camera->SetPosition(Vector3(0, 500, 0));
+	camera->SetPitch(0.0f);
+	camera->SetPosition(Vector3(0, 0, 100));
 
 	doge = OGLTexture::RGBATextureFromFilename(Assets::TEXTUREDIR + "doge.png");
 
@@ -50,24 +49,29 @@ NavMeshRenderer::~NavMeshRenderer() {
 
 void NavMeshRenderer::Update(float dt) {
 	camera->UpdateCamera(dt);
+	Vector3 cameraPos = camera->GetPosition();
+	std::string cameraPosString = std::to_string(cameraPos.x) + ", "+ std::to_string(cameraPos.y) + ", " +  std::to_string(cameraPos.z);
+	
+	DrawString(cameraPosString, Vector2(10, 10));
 }
 
 void NavMeshRenderer::RenderFrame() {
 
-	/*updateShader->Bind();
+	updateShader->Bind();
 	updateShader->Execute(NUMBER_PARTICLES);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	//MoveParticles();
 
 	if (bufferBind) {
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, computeBufferA);
 	}
 	else {
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, computeBufferB);
-	}*/
+	}
+
 	BindShader(navShader);
-	MoveParticles();
-	/*glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, NUMBER_PARTICLES * sizeof(Vector4), (float*)particles->GetPositions().data());*/
+	glBindVertexArray(defaultVAO);
+	
 	
 	BindTextureToShader(doge, "mainTex", 0);
 	float screenAspect = (float)currentWidth / (float)currentHeight;
@@ -128,6 +132,7 @@ void NCL::NavMeshRenderer::RunGenerateShader() {
 }
 
 void NCL::NavMeshRenderer::SaveParticlesGenerated() {
+
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, computeBufferA);
 	Vector4* ptr;
 	ptr = (Vector4*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUMBER_PARTICLES * sizeof(Vector4), GL_MAP_READ_BIT);
@@ -135,18 +140,8 @@ void NCL::NavMeshRenderer::SaveParticlesGenerated() {
 	for (int i = 0; i < NUMBER_PARTICLES; ++i) {
 		temp.push_back(ptr[i]);
 	}
-
-
 	particles->SetPositions(temp);
 	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-
-	/*glGenBuffers(1, &vertexBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, NUMBER_PARTICLES * sizeof(Vector4), (float*)particles->GetPositions().data(), GL_STATIC_DRAW);
-
-	glEnableVertexAttribArray(3);
-	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 0, 0);*/
-
 }
 
 void NCL::NavMeshRenderer::MoveParticles() {
@@ -158,7 +153,8 @@ void NCL::NavMeshRenderer::MoveParticles() {
 		Vector3 position(p.x, p.z, p.y);
 		Vector3 direction = Vector3(0, 0, 0) - position;
 		direction.Normalise();
-		position = position * (direction * 2);
+		direction *= -0.1f;
+		position = position + direction;
 		newPositions.push_back(Vector4(position.x, position.y, position.z, 1));
 	}
 	particles->SetPositions(newPositions);

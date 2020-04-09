@@ -14,7 +14,7 @@ void main() {
 	vec3 dir = centrePos - vec3(Positions[gid].xyz);
 	vec3 dirNormalize = normalize(dir);
 
-	vec3 distanceToMove = dirNormalize * 1.0;
+	vec3 distanceToMove = dirNormalize * -0.1;
 
 	vec3  newPos = Positions[gid].xyz + distanceToMove;
 
