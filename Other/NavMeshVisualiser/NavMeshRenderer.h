@@ -46,10 +46,11 @@ namespace NCL {
 
 		TextureBase* doge;
 
-		
+		Vector4* ptr;
 
 		int count;
 		bool bufferBind;
+		float dt;
 	};
 }
 

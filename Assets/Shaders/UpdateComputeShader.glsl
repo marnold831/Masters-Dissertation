@@ -1,5 +1,7 @@
 #version 450 core
 
+uniform float time;
+
 layout(std140, binding = 0) buffer pos {
 	vec4 Positions[];
 };
@@ -17,8 +19,9 @@ void main() {
 	vec3 distanceToMove = dirNormalize * -0.1;
 
 	vec3  newPos = Positions[gid].xyz + distanceToMove;
+	Positions[gid].w = Positions[gid].w - time;
 
-	Positions[gid] = vec4(newPos, 1.0);
+	Positions[gid] = vec4(newPos.xyz, Positions[gid].w);
 	//Positions[gid] = Positions[gid];
 }
 	

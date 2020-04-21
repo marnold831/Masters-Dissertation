@@ -32,7 +32,8 @@ void main() {
 	float x = r * sinPhi * cosTheta * 30;
 	float y = r * sinPhi * sinTheta * 30;
 	float z = r * cosPhi * 30;
+	float w = random(vec2(gid, gid)) * 50;
 
-	Positions[gid] = vec4(x, y, z, 1.0);
+	Positions[gid] = vec4(x, y, z, w);
 }
 	

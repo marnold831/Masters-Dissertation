@@ -6,12 +6,12 @@ layout(points) in;
 layout(triangle_strip, max_vertices = 4) out;
 
 in Vertex{
-	vec3 position;
+	vec4 position;
 	vec4 color;
 } IN[];
 
 out Vertex{
-	vec3 position;
+	vec4 position;
 	vec4 color;
 	vec2 texCoord;
 } OUT;
@@ -20,7 +20,7 @@ void main() {
 
 	for (int i = 0; i < gl_in.length(); ++i) {
 		OUT.color = IN[i].color;
-		OUT.position = vec3(gl_in[i].gl_Position.x, gl_in[i].gl_Position.y, gl_in[i].gl_Position.z);
+		OUT.position = vec4(gl_in[i].gl_Position.x, gl_in[i].gl_Position.y, gl_in[i].gl_Position.z, IN[i].position.w);
 		// top right
 		gl_Position = gl_in[i].gl_Position;
 		gl_Position.x += particleSize;

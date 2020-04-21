@@ -12,14 +12,16 @@ layout(std140, binding = 0) buffer pos {
 
 out Vertex
 {
-	vec3 position;
+	vec4 position;
 	vec4 color;
 } OUT; 
 
 void main(void)
 {
 	mat4 mvp = (projMatrix * viewMatrix * modelMatrix);
-	gl_Position = mvp * Positions[gl_VertexID];
-	OUT.position = vec3(mvp * Positions[gl_VertexID]).xyz;
+	vec4 pos = vec4(Positions[gl_VertexID].xyz, 1.0);
+	pos = mvp * pos;
+	gl_Position = pos;
+	OUT.position = vec4(pos.xyz, Positions[gl_VertexID].w);
 	OUT.color = vec4(0.0, 1.0, 1.0, 1.0);
 }

@@ -9,7 +9,7 @@
 #include <iostream>
 using namespace NCL;
 
-NavMeshRenderer::NavMeshRenderer() : OGLRenderer(*Window::GetWindow()), count(0), bufferBind(false)	{
+NavMeshRenderer::NavMeshRenderer() : OGLRenderer(*Window::GetWindow()), count(0), bufferBind(false), dt(0.f)	{
 	
 	heightmap = new HeightMap(Assets::MESHDIR + "terrain.raw");
 	heightmap->SetTexture(OGLTexture::RGBATextureFromFilename(Assets::TEXTUREDIR + "Barren Reds.jpg"));
@@ -38,7 +38,7 @@ NavMeshRenderer::NavMeshRenderer() : OGLRenderer(*Window::GetWindow()), count(0)
 	glGenVertexArrays(1, &defaultVAO);
 	glBindVertexArray(defaultVAO);
 
-	
+	glEnable(GL_BLEND);
 }
 
 NavMeshRenderer::~NavMeshRenderer() {
@@ -48,6 +48,7 @@ NavMeshRenderer::~NavMeshRenderer() {
 }
 
 void NavMeshRenderer::Update(float dt) {
+	this->dt = dt*10;
 	camera->UpdateCamera(dt);
 	Vector3 cameraPos = camera->GetPosition();
 	std::string cameraPosString = std::to_string(cameraPos.x) + ", "+ std::to_string(cameraPos.y) + ", " +  std::to_string(cameraPos.z);
@@ -58,6 +59,11 @@ void NavMeshRenderer::Update(float dt) {
 void NavMeshRenderer::RenderFrame() {
 
 	updateShader->Bind();
+
+	int timeLocation = glGetUniformLocation(updateShader->GetProgramID(), "time");
+	glUniform1f(timeLocation, dt);
+	std::cout << "dt: " << dt << std::endl;
+
 	updateShader->Execute(NUMBER_PARTICLES);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 	//MoveParticles();
@@ -81,18 +87,21 @@ void NavMeshRenderer::RenderFrame() {
 	Matrix4 modelMat = Matrix4();
 	Matrix4 texture = Matrix4();
 
-	int projLocation	= glGetUniformLocation(navShader->GetProgramID(), "projMatrix");
-	int viewLocation	= glGetUniformLocation(navShader->GetProgramID(), "viewMatrix");
-	int modelLocation	= glGetUniformLocation(navShader->GetProgramID(), "modelMatrix");
-	int textureMatrix = glGetUniformLocation(navShader->GetProgramID(), "textureMatrix");
+	int progID = navShader->GetProgramID();
+
+	int projLocation	= glGetUniformLocation(progID, "projMatrix");
+	int viewLocation	= glGetUniformLocation(progID, "viewMatrix");
+	int modelLocation	= glGetUniformLocation(progID, "modelMatrix");
+	int textureMatrix	= glGetUniformLocation(progID, "textureMatrix");
 	
 	glUniformMatrix4fv(modelLocation, 1, false, (float*)&modelMat);
 	glUniformMatrix4fv(viewLocation, 1, false, (float*)&viewMatrix);
 	glUniformMatrix4fv(projLocation, 1, false, (float*)&projMatrix);
 	glUniformMatrix4fv(textureMatrix, 1, false, (float*)&texture);
-
+	
 	glDrawArrays(GL_POINTS, 0, NUMBER_PARTICLES);
 
+	
 	SwapComputeBuffers();
 }
 
@@ -129,12 +138,18 @@ void NCL::NavMeshRenderer::RunGenerateShader() {
 	generateShader->Bind();
 	generateShader->Execute(NUMBER_PARTICLES);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+	glBindBuffer(GL_COPY_READ_BUFFER, computeBufferA);
+	glBindBuffer(GL_COPY_WRITE_BUFFER, computeBufferB);
+	glBufferData(GL_COPY_WRITE_BUFFER, NUMBER_PARTICLES * sizeof(Vector4), nullptr, GL_STATIC_DRAW);
+
+	glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, NUMBER_PARTICLES * sizeof(Vector4));
 }
 
 void NCL::NavMeshRenderer::SaveParticlesGenerated() {
 
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, computeBufferA);
-	Vector4* ptr;
+	//Vector4* ptr;
 	ptr = (Vector4*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUMBER_PARTICLES * sizeof(Vector4), GL_MAP_READ_BIT);
 	vector<Vector4> temp;
 	for (int i = 0; i < NUMBER_PARTICLES; ++i) {
@@ -142,6 +157,8 @@ void NCL::NavMeshRenderer::SaveParticlesGenerated() {
 	}
 	particles->SetPositions(temp);
 	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+
+	
 }
 
 void NCL::NavMeshRenderer::MoveParticles() {
