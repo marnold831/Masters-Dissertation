@@ -69,10 +69,10 @@ void NavMeshRenderer::RenderFrame() {
 	//MoveParticles();
 
 	if (bufferBind) {
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, computeBufferA);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, directionBufferA);
 	}
 	else {
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, computeBufferB);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, directionBufferB);
 	}
 
 	BindShader(navShader);
@@ -106,29 +106,42 @@ void NavMeshRenderer::RenderFrame() {
 }
 
 void NCL::NavMeshRenderer::GenerateComputeBuffer() {
-	glGenBuffers(1, &computeBufferA);
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, computeBufferA);
+	glGenBuffers(1, &positionBufferA);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, positionBufferA);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, NUMBER_PARTICLES * sizeof(Vector4), (float*)particles->GetPositions().data(), GL_DYNAMIC_DRAW);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, computeBufferA);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, positionBufferA);
 
-	glGenBuffers(1, &computeBufferB);
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, computeBufferB);
+	glGenBuffers(1, &positionBufferB);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, positionBufferB);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, NUMBER_PARTICLES * sizeof(Vector4), (float*)particles->GetPositions().data(), GL_DYNAMIC_DRAW);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, computeBufferB);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, positionBufferB);
 
+	glGenBuffers(1, &directionBufferA);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, directionBufferA);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, NUMBER_PARTICLES * sizeof(Vector4), NULL, GL_DYNAMIC_DRAW);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, directionBufferA);
+
+	glGenBuffers(1, &directionBufferB);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, directionBufferB);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, NUMBER_PARTICLES * sizeof(Vector4), NULL, GL_DYNAMIC_DRAW);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, directionBufferB);
 
 
 }
 
 void NCL::NavMeshRenderer::SwapComputeBuffers() {
 	if (count % 2 == 0) {
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, computeBufferB);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, computeBufferA);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, positionBufferB);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, positionBufferA);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, directionBufferB);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, directionBufferA);
 		bufferBind = true;
 	}
 	else {
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, computeBufferB);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, computeBufferA);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, positionBufferB);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, positionBufferA);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, directionBufferB);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, directionBufferA);
 		bufferBind = false;
 	}
 	count++;
@@ -139,16 +152,24 @@ void NCL::NavMeshRenderer::RunGenerateShader() {
 	generateShader->Execute(NUMBER_PARTICLES);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-	glBindBuffer(GL_COPY_READ_BUFFER, computeBufferA);
-	glBindBuffer(GL_COPY_WRITE_BUFFER, computeBufferB);
+	glBindBuffer(GL_COPY_READ_BUFFER, positionBufferA);
+	glBindBuffer(GL_COPY_WRITE_BUFFER, positionBufferB);
 	glBufferData(GL_COPY_WRITE_BUFFER, NUMBER_PARTICLES * sizeof(Vector4), nullptr, GL_STATIC_DRAW);
 
 	glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, NUMBER_PARTICLES * sizeof(Vector4));
+
+	glBindBuffer(GL_COPY_READ_BUFFER, directionBufferA);
+	glBindBuffer(GL_COPY_WRITE_BUFFER, directionBufferB);
+	glBufferData(GL_COPY_WRITE_BUFFER, NUMBER_PARTICLES * sizeof(Vector4), nullptr, GL_STATIC_DRAW);
+
+	glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, NUMBER_PARTICLES * sizeof(Vector4));
+
+
 }
 
 void NCL::NavMeshRenderer::SaveParticlesGenerated() {
 
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, computeBufferA);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, positionBufferA);
 	//Vector4* ptr;
 	ptr = (Vector4*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUMBER_PARTICLES * sizeof(Vector4), GL_MAP_READ_BIT);
 	vector<Vector4> temp;
@@ -176,9 +197,9 @@ void NCL::NavMeshRenderer::MoveParticles() {
 	}
 	particles->SetPositions(newPositions);
 
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, computeBufferA);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, positionBufferA);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, NUMBER_PARTICLES * sizeof(Vector4), (float*)particles->GetPositions().data(), GL_DYNAMIC_DRAW);
 
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, computeBufferB);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, positionBufferB);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, NUMBER_PARTICLES * sizeof(Vector4), (float*)particles->GetPositions().data(), GL_DYNAMIC_DRAW);
 }

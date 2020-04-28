@@ -4,6 +4,10 @@ layout(std140, binding = 0) buffer pos {
 	vec4 Positions[];
 };
 
+layout(std140, binding = 2) buffer dir {
+	vec4 Directions[];
+};
+
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 #define PI 3.14159265358979323846
@@ -35,5 +39,6 @@ void main() {
 	float w = random(vec2(gid, gid)) * 50;
 
 	Positions[gid] = vec4(x, y, z, w);
+	Directions[gid] = vec4(x, y, z, w);
 }
 	

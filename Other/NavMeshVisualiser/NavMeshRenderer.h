@@ -8,7 +8,7 @@
 #include "HeightMap.h"
 #include "Particles.h"
 
-#define NUMBER_PARTICLES 1000000 //100,000
+#define NUMBER_PARTICLES 100000000 //100,000
 
 
 namespace NCL {
@@ -31,8 +31,10 @@ namespace NCL {
 		GLuint defaultVAO;
 
 		GLuint vertexBuffer;
-		GLuint computeBufferA;
-		GLuint computeBufferB;
+		GLuint positionBufferA;
+		GLuint positionBufferB;
+		GLuint directionBufferA;
+		GLuint directionBufferB;
 		
 		OGLMesh* navMesh;
 
