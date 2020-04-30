@@ -62,17 +62,17 @@ void NavMeshRenderer::RenderFrame() {
 
 	int timeLocation = glGetUniformLocation(updateShader->GetProgramID(), "time");
 	glUniform1f(timeLocation, dt);
-	std::cout << "dt: " << dt << std::endl;
+	//std::cout << "dt: " << dt << std::endl;
 
 	updateShader->Execute(NUMBER_PARTICLES);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 	//MoveParticles();
 
 	if (bufferBind) {
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, directionBufferA);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, positionBufferA);
 	}
 	else {
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, directionBufferB);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, positionBufferB);
 	}
 
 	BindShader(navShader);
@@ -175,6 +175,7 @@ void NCL::NavMeshRenderer::SaveParticlesGenerated() {
 	vector<Vector4> temp;
 	for (int i = 0; i < NUMBER_PARTICLES; ++i) {
 		temp.push_back(ptr[i]);
+		
 	}
 	particles->SetPositions(temp);
 	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);

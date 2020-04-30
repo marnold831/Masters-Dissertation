@@ -13,7 +13,7 @@ out vec4 fragColor;
 
 void main(void)
 {
-	if(IN.position.w <0)	{
+	if(IN.position.w <-100)	{
 		discard;
 	}
 	

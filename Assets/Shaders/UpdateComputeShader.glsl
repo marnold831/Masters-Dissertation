@@ -2,12 +2,20 @@
 
 uniform float time;
 
-layout(std140, binding = 0) buffer pos {
-	vec4 Positions[];
+layout(std140, binding = 0) buffer posA {
+	vec4 PositionsA[];
 };
 
-layout(std140, binding = 2) buffer dir {
-	vec4 Directions[];
+layout(std140, binding = 0) buffer posB {
+	vec4 PositionsB[];
+};
+
+layout(std140, binding = 2) buffer dirA {
+	vec4 DirectionsA[];
+};
+
+layout(std140, binding = 2) buffer dirB {
+	vec4 DirectionsB[];
 };
 
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
@@ -17,30 +25,33 @@ vec3 centrePos = vec3(0.0, 0.0, 0.0);
 float RadConvert = 3.14159265358979323846 / 180;
 
 float OffsetCalc(float time){
-	float offset = sin(time * RadConvert) + cos(time * RadConvert);
+	float offset = sin(time * RadConvert *6); //+ cos(time * RadConvert * 2);
 	return offset;
 }
 
 
 void main() {
 
-	vec3 dir = centrePos - vec3(Directions[gid].xyz);
+	vec3 dir = centrePos - vec3(DirectionsA[gid].xyz);
 	vec3 dirNormalize = normalize(dir);
 
-	vec3 distanceToMove = dirNormalize * -0.1;
-	vec3  newPos = Positions[gid].xyz + distanceToMove;
+	vec3 distanceToMove = dirNormalize * -0.41;
+	vec3  newPos = DirectionsA[gid].xyz + distanceToMove;
 
-	Directions[gid] = vec4(newPos.xyz, 0.0);
+	DirectionsB[gid] = vec4(newPos.xyz, 0.0);
 
-	vec3 perpDir = vec3(-dirNormalize.y, dirNormalize.x, dirNormalize.z);
+	vec3 perpDir = cross(dir, vec3(0,1,0));
+	if(perpDir.y > 0.9999){
+		perpDir = cross(dir, vec3(1,0,0));
+	}
 	
-	Positions[gid].w = Positions[gid].w - time;
+	PositionsB[gid].w = PositionsA[gid].w - time;
 
-	vec3 offset = perpDir * OffsetCalc(Positions[gid].w);
+	vec3 offset = perpDir * OffsetCalc(PositionsB[gid].w);
 
 	newPos = newPos + offset;
 
-	Positions[gid] = vec4(newPos.xyz, Positions[gid].w);
-	//Positions[gid] = Positions[gid];
+	PositionsB[gid] = vec4(newPos.xyz, PositionsB[gid].w);
+	//PositionsA[gid] = PositionsA[gid];
 }
 	

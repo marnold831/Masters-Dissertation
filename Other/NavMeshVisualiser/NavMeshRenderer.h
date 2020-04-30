@@ -8,7 +8,7 @@
 #include "HeightMap.h"
 #include "Particles.h"
 
-#define NUMBER_PARTICLES 100000000 //100,000
+#define NUMBER_PARTICLES 1000000 //100,000
 
 
 namespace NCL {
