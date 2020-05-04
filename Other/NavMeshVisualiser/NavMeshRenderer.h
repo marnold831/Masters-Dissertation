@@ -8,7 +8,7 @@
 #include "HeightMap.h"
 #include "Particles.h"
 
-#define NUMBER_PARTICLES 1000000 //100,000
+#define NUMBER_PARTICLES 10 //100,000
 
 
 namespace NCL {
@@ -23,10 +23,11 @@ namespace NCL {
 	protected:
 		void RenderFrame()	override;
 		void GenerateComputeBuffer();
+		void GenerateVertexBuffer();
 		void SwapComputeBuffers();
 		void RunGenerateShader();
 		void SaveParticlesGenerated();
-		void MoveParticles();
+		
 
 		GLuint defaultVAO;
 

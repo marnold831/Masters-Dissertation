@@ -1,6 +1,6 @@
 #version 330 core
 
-uniform float particleSize = 4;
+uniform float particleSize = 2.5;
 
 layout(points) in;
 layout(triangle_strip, max_vertices = 4) out;

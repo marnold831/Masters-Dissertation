@@ -1,5 +1,6 @@
 #pragma once
 #include "../../Common/Vector4.h"
+#include "../../Common/Vector3.h"
 #include <vector>
 
 using namespace NCL::Maths;
@@ -10,12 +11,17 @@ public:
 	Particles(int numParticles);
 	~Particles();
 
-	std::vector<Vector4> GetPositions() const { return positions; }
-	void SetPositions(std::vector<Vector4> _positions) { positions.clear();  positions = _positions; }
+	void UpdatePositions(float dt);
+
+	void SetDirectionPositions(std::vector<Vector4> pos) { directionPositions = pos; }
+	void SetDrawPositions(std::vector<Vector4> pos) { drawPositions = pos; }
+	std::vector<Vector4> GetDrawPositions() const { return drawPositions; }
+
+	int GetNumberParticles() const { return numParticles; }
 
 private:
-	std::vector<Vector4>	positions;
-	std::vector<Vector4>	velocities;
+	std::vector<Vector4>	drawPositions;
+	std::vector<Vector4>	directionPositions;
 	int						numParticles;
 
 
