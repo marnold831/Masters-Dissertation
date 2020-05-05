@@ -24,13 +24,13 @@ uint gid = gl_GlobalInvocationID.x;
 vec3 centrePos = vec3(0.0, 0.0, 0.0);
 float RadConvert = 3.14159265358979323846 / 180;
 
-float OffsetCalcSin(float time){
-	float offset = sin(0.5 * time *RadConvert) + pow(cos(time * 2 * RadConvert), 0.3333333333);
+float OffsetCalcX(float time){
+	float offset = sin(time) + cos(time * 2 ) + cos(time);
 	return offset;
 }
 
-float OffsetCalcCos(float time) {
-	float offset = cos(time * RadConvert);
+float OffsetCalcY(float time) {
+	float offset = sin(time * 2) + sin(time);
 	return offset;
 }
 
@@ -53,18 +53,13 @@ void main() {
 	
 	PositionsB[gid].w = PositionsA[gid].w - time;
 
-	//vec3 offsetX = perpDirX * OffsetCalcSin(PositionsB[gid].w*6);
+	vec3 offsetX = perpDirX * OffsetCalcX(PositionsB[gid].w);
 
-	vec3 offsetX = perpDirX * OffsetCalcSin(PositionsB[gid].w);
 
 	vec3 perpDirY = cross(perpDirX, vec3(0,0,1));
-	vec3 offsetY = perpDirY * OffsetCalcCos(PositionsB[gid].w*6);
+	vec3 offsetY = perpDirY * OffsetCalcY(PositionsB[gid].w/2);
 
-	vec3 perpDirZ = cross(perpDirY, vec3(1,0,0));
-	vec3 offsetZ = perpDirZ * (OffsetCalcSin(0.5*PositionsB[gid].w) + (pow(OffsetCalcCos(2*PositionsB[gid].w), 1/3)));
-
-
-	newPos = newPos + offsetX*10; //+ offsetY*10 + offsetZ * 10;
+	newPos = newPos + offsetX*5; + offsetY*5;
 
 	PositionsB[gid] = vec4(newPos.xyz, PositionsB[gid].w);
 	//PositionsA[gid] = PositionsA[gid];

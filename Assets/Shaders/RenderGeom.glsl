@@ -20,7 +20,8 @@ void main() {
 
 	for (int i = 0; i < gl_in.length(); ++i) {
 		OUT.color = IN[i].color;
-		OUT.position = vec4(gl_in[i].gl_Position.x, gl_in[i].gl_Position.y, gl_in[i].gl_Position.z, IN[i].position.w);
+		OUT.position = IN[i].position;
+		//OUT.position = vec4(gl_in[i].gl_Position.x, gl_in[i].gl_Position.y, gl_in[i].gl_Position.z, gl_in[i].gl_Position.w);
 		// top right
 		gl_Position = gl_in[i].gl_Position;
 		gl_Position.x += particleSize;

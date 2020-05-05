@@ -36,7 +36,10 @@ void main() {
 	float x = r * sinPhi * cosTheta * 20;
 	float y = r * sinPhi * sinTheta * 20;
 	float z = r * cosPhi * 20;
-	float w = abs(random(vec2(gid, gid)) * 50);
+
+	float v1 = abs(random(vec2(gid/11, gid/13)) * 50);
+	float v2 = abs(random(vec2(gid/17, gid/19)) * 50);
+	float w = abs(random(vec2(v1/23*23, v2/29*45)) * 300);
 
 	Positions[gid] = vec4(x, y, z, w);
 	Directions[gid] = vec4(x, y, z, w);

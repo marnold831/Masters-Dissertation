@@ -51,14 +51,14 @@ NavMeshRenderer::~NavMeshRenderer() {
 }
 
 void NavMeshRenderer::Update(float dt) {
-	this->dt = dt*10;
-	camera->UpdateCamera(dt);
+	this->dt = dt*2;
+	camera->UpdateCamera(this->dt);
 	Vector3 cameraPos = camera->GetPosition();
 	std::string cameraPosString = std::to_string(cameraPos.x) + ", "+ std::to_string(cameraPos.y) + ", " +  std::to_string(cameraPos.z);
 	
 	DrawString(cameraPosString, Vector2(10, 10));
 
-	particles->UpdatePositions(dt);
+	particles->UpdatePositions(this->dt);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, NUMBER_PARTICLES * sizeof(Vector4), (float*)particles->GetDrawPositions().data(), GL_STATIC_DRAW);
 }
@@ -191,6 +191,7 @@ void NCL::NavMeshRenderer::SaveParticlesGenerated() {
 	vector<Vector4> temp;
 	for (int i = 0; i < NUMBER_PARTICLES; ++i) {
 		temp.push_back(ptr[i]);
+		std::cout << ptr[i].w << std::endl;
 		
 	}
 	particles->SetDrawPositions(temp);

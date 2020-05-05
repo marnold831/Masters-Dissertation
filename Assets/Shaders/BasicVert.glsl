@@ -39,6 +39,8 @@ void main(void)
 	pos.w = 1.0;
 	pos = mvp * pos;
 	gl_Position = pos;
-	OUT.position = pos;
-	OUT.color = vec4(0.0, 1.0, 1.0, 1.0);
+	OUT.position = vec4(pos.x, pos.y, pos.z, Position.w);
+	OUT.color = vec4(1.0, 0.0, 0.0, 1.0);
+
+	
 }
