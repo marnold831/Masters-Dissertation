@@ -53,8 +53,9 @@ void OGLShader::ReloadShader() {
 		if (!shaderFiles[i].empty()) {
 			if (Assets::ReadTextFile(Assets::SHADERDIR + shaderFiles[i], fileContents)) {
 				shaderIDs[i] = glCreateShader(shaderTypes[i]);
-
+#ifdef DEBUG_LOG
 				std::cout << "Reading " << ShaderNames[i] << " shader " << shaderFiles[i] << std::endl;
+#endif
 
 				const char* stringData	 = fileContents.c_str();
 				int			stringLength = (int)fileContents.length();
@@ -81,9 +82,11 @@ void OGLShader::ReloadShader() {
 	if (programValid != GL_TRUE) {
 		std::cout << "This shader has failed!" << std::endl;
 	}
+#ifdef DEBUG_LOG
 	else {
 		std::cout << "Shader loaded!" << std::endl;
 	}
+#endif
 }
 
 void	OGLShader::DeleteIDs() {
@@ -106,7 +109,9 @@ void	OGLShader::PrintCompileLog(GLuint object) {
 	if (logLength) {
 		char* tempData = new char[logLength];
 		glGetShaderInfoLog(object, logLength, NULL, tempData);
+#ifdef DEBUG_LOG
 		std::cout << "Compile Log:\n" << tempData << std::endl;
+#endif
 		delete tempData;
 	}
 }
@@ -118,7 +123,9 @@ void	OGLShader::PrintLinkLog(GLuint program) {
 	if (logLength) {
 		char* tempData = new char[logLength];
 		glGetProgramInfoLog(program, logLength, NULL, tempData);
+#ifdef DEBUG_LOG
 		std::cout << "Link Log:\n" << tempData << std::endl;
+#endif
 		delete tempData;
 	}
 }

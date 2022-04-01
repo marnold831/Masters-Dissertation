@@ -1,4 +1,5 @@
 #pragma once
+#include "precomp.h"
 #include "../../Plugins/OpenGLRendering/OGLRenderer.h"
 #include "../../Plugins/OpenGLRendering/OGLShader.h"
 #include "../../Plugins/OpenGLRendering/OGLTexture.h"
@@ -8,7 +9,7 @@
 #include "HeightMap.h"
 #include "Particles.h"
 
-#define NUMBER_PARTICLES 100//100,000
+#define NUMBER_PARTICLES 1'000'000'000//100,000
 
 
 namespace NCL {

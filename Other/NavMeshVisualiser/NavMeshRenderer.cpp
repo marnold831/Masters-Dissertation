@@ -191,7 +191,9 @@ void NCL::NavMeshRenderer::SaveParticlesGenerated() {
 	vector<Vector4> temp;
 	for (int i = 0; i < NUMBER_PARTICLES; ++i) {
 		temp.push_back(ptr[i]);
+#ifdef DEBUG_LOG
 		std::cout << ptr[i].w << std::endl;
+#endif
 		
 	}
 	particles->SetDrawPositions(temp);

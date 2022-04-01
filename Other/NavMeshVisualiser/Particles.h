@@ -13,15 +13,15 @@ public:
 
 	void UpdatePositions(float dt);
 
-	void SetDirectionPositions(std::vector<Vector4> pos) { directionPositions = pos; }
-	void SetDrawPositions(std::vector<Vector4> pos) { drawPositions = pos; }
-	std::vector<Vector4> GetDrawPositions() const { return drawPositions; }
+	void SetDirectionPositions(std::unique_ptr<Vector4> pos) { directionPositions = std::move(pos); }
+	void SetDrawPositions(std::unique_ptr<Vector4> pos) { drawPositions = std::move(pos); }
+	std::vector<Vector4> GetDrawPositions() const { return drawPositions->; }
 
 	int GetNumberParticles() const { return numParticles; }
 
 private:
-	std::vector<Vector4>	drawPositions;
-	std::vector<Vector4>	directionPositions;
+	std::unique_ptr<Vector4>	drawPositions;
+	std::unique_ptr<Vector4>	directionPositions;
 	int						numParticles;
 
 
